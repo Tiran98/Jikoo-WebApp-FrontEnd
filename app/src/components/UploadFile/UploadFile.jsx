@@ -1,5 +1,5 @@
 import * as dayjs from 'dayjs';
-
+import React, { useState, useEffect, useRef } from 'react';
 import { Box, Button, Container, Drawer, Grid, Stack, TextField, Typography } from '@mui/material/';
 import { alpha, styled } from '@mui/material/styles';
 
@@ -7,7 +7,6 @@ import DashboardIcon from '@mui/icons-material/Dashboard';
 import FileUploadIcon from '@mui/icons-material/FileUpload';
 import MailIcon from '@mui/icons-material/Mail';
 import NavSection from '../nav-section';
-import React from 'react';
 import axios from 'axios';
 import logo from '../../assets/LogoConceptCROP.png';
 import { useDropzone } from 'react-dropzone';
@@ -36,10 +35,18 @@ const navConfig = [
   }
 ];
 
-const account = {
-  displayName: 'Jaydon Frankie',
-  role: 'Manager'
-};
+const navConfigEm = [
+  {
+    title: 'dashboard',
+    icon: <DashboardIcon />,
+    path: '/dashboard'
+  },
+  {
+    title: 'send message',
+    icon: <MailIcon />,
+    path: '/send-message'
+  }
+];
 
 const StyledRoot = styled('div')({
   display: 'flex',
@@ -108,7 +115,14 @@ export const UploadFile = () => {
   const { classes } = useStyles();
   let navigate = useNavigate();
   var now = dayjs().format('MMMM D, YYYY h:mm A');
-  //const [selectedFile, setSelectedFile] = React.useState(null);
+  const isFirstRender = useRef(true);
+  const [user, setUser] = useState();
+  const [userName, setUserName] = useState('');
+  const [userType, setUserType] = useState('');
+  const [userID, setUserID] = useState('');
+  const [token, setToken] = useState('');
+  // const [success, setSuccess] = useState(false);
+  // const [alertOpen, setAlertOpen] = useState(false);
   const { getRootProps, acceptedFiles, getInputProps, isDragActive, isDragAccept, isDragReject } =
     useDropzone();
   const { handleSubmit } = useForm();
@@ -118,6 +132,24 @@ export const UploadFile = () => {
       {file.path} - {(file.size / 1024 / 1024).toFixed(2)} MB
     </Typography>
   ));
+
+  console.log(userID + token);
+
+  useEffect(() => {
+    setUser(JSON.parse(localStorage.getItem('user')));
+  }, []);
+
+  useEffect(() => {
+    if (isFirstRender.current) {
+      isFirstRender.current = false;
+      return;
+    }
+
+    setUserName(user.userEmail);
+    setUserType(user.userType);
+    setUserID(user.userId);
+    setToken(user.token);
+  }, [user]);
 
   const onSubmitHandler = () => {
     console.log(acceptedFiles);
@@ -138,18 +170,6 @@ export const UploadFile = () => {
       });
   };
 
-  // const onFileChange = (event) => {
-  //   setSelectedFile(event.target.files[0]);
-  // };
-
-  // const onFileUpload = () => {
-  //   const formData = new FormData();
-
-  //   formData.append('myFile', selectedFile, selectedFile.name);
-
-  //   console.log(selectedFile);
-  // };
-
   const renderContent = (
     <>
       <Box sx={{ px: 2.5, py: 3, display: 'inline-flex' }}>
@@ -160,17 +180,17 @@ export const UploadFile = () => {
         <StyledAccount>
           <Box>
             <Typography variant="subtitle2" sx={{ color: '#FFFFFF', fontWeight: '600' }}>
-              {account.displayName}
+              {userName}
             </Typography>
 
             <Typography variant="caption" sx={{ color: '#cd6afd', fontWeight: '600' }}>
-              {account.role}
+              {userType}
             </Typography>
           </Box>
         </StyledAccount>
       </Box>
 
-      <NavSection data={navConfig} />
+      <NavSection data={userType == 'Manager' ? navConfig : navConfigEm} />
 
       <Box sx={{ flexGrow: 1 }} />
 
@@ -187,7 +207,8 @@ export const UploadFile = () => {
   );
 
   const onLogout = () => {
-    console.log('test');
+    localStorage.clear();
+    console.log('Logging out.');
     navigate('/');
   };
 

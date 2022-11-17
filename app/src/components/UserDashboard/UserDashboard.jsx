@@ -32,6 +32,19 @@ const navConfig = [
   }
 ];
 
+const navConfigEm = [
+  {
+    title: 'dashboard',
+    icon: <DashboardIcon />,
+    path: '/dashboard'
+  },
+  {
+    title: 'send message',
+    icon: <MailIcon />,
+    path: '/send-message'
+  }
+];
+
 const StyledRoot = styled('div')({
   display: 'flex',
   minHeight: '100%',
@@ -99,8 +112,8 @@ export const UserDashboard = () => {
   let navigate = useNavigate();
   const isFirstRender = useRef(true);
   const [user, setUser] = useState();
-  const [userName, setUserName] = useState('Jaydon Frankie');
-  const [userType, setUserType] = useState('Manager');
+  const [userName, setUserName] = useState('');
+  const [userType, setUserType] = useState('');
   const [userID, setUserID] = useState('');
   const [token, setToken] = useState('');
   const [messages, setMessages] = useState([]);
@@ -199,7 +212,7 @@ export const UserDashboard = () => {
         </StyledAccount>
       </Box>
 
-      <NavSection data={navConfig} />
+      <NavSection data={userType == 'Manager' ? navConfig : navConfigEm} />
 
       <Box sx={{ flexGrow: 1 }} />
 

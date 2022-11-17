@@ -27,24 +27,6 @@ let validationSchema = yup.object().shape({
 
 const NAV_WIDTH = 280;
 
-const navConfig = [
-  {
-    title: 'dashboard',
-    icon: <DashboardIcon />,
-    path: '/dashboard'
-  },
-  {
-    title: 'send message',
-    icon: <MailIcon />,
-    path: '/send-message'
-  },
-  {
-    title: 'upload file',
-    icon: <FileUploadIcon />,
-    path: '/file-upload'
-  }
-];
-
 const StyledRoot = styled('div')({
   display: 'flex',
   minHeight: '100%',
@@ -108,6 +90,37 @@ const CssTextField = withStyles(TextField, () => ({
   }
 }));
 
+const navConfig = [
+  {
+    title: 'dashboard',
+    icon: <DashboardIcon />,
+    path: '/dashboard'
+  },
+  {
+    title: 'send message',
+    icon: <MailIcon />,
+    path: '/send-message'
+  },
+  {
+    title: 'upload file',
+    icon: <FileUploadIcon />,
+    path: '/file-upload'
+  }
+];
+
+const navConfigEm = [
+  {
+    title: 'dashboard',
+    icon: <DashboardIcon />,
+    path: '/dashboard'
+  },
+  {
+    title: 'send message',
+    icon: <MailIcon />,
+    path: '/send-message'
+  }
+];
+
 export const SendMessage = () => {
   const { classes } = useStyles();
   let navigate = useNavigate();
@@ -122,8 +135,8 @@ export const SendMessage = () => {
   });
   const isFirstRender = useRef(true);
   const [user, setUser] = useState();
-  const [userName, setUserName] = useState('Jaydon Frankie');
-  const [userType, setUserType] = useState('Manager');
+  const [userName, setUserName] = useState('');
+  const [userType, setUserType] = useState('');
   const [userID, setUserID] = useState('');
   const [token, setToken] = useState('');
   const [success, setSuccess] = useState(false);
@@ -144,8 +157,6 @@ export const SendMessage = () => {
     setUserID(user.userId);
     setToken(user.token);
   }, [user]);
-
-  console.log(success);
 
   const onSubmitHandler = (data) => {
     console.log({ data });
@@ -198,7 +209,7 @@ export const SendMessage = () => {
         </StyledAccount>
       </Box>
 
-      <NavSection data={navConfig} />
+      <NavSection data={userType == 'Manager' ? navConfig : navConfigEm} />
 
       <Box sx={{ flexGrow: 1 }} />
 
