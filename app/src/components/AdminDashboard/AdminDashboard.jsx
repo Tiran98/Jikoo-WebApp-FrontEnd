@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Box, Drawer, Typography, Container, Grid, Stack, Button } from '@mui/material/';
 import DashboardIcon from '@mui/icons-material/Dashboard';
 import GroupAddIcon from '@mui/icons-material/GroupAdd';
@@ -24,11 +24,6 @@ const navConfig = [
     path: '/add-user'
   }
 ];
-
-const account = {
-  displayName: 'Jaydon Frankie',
-  role: 'Admin'
-};
 
 const StyledRoot = styled('div')({
   display: 'flex',
@@ -91,6 +86,28 @@ const rows = [
 export const AdminDashboards = () => {
   const { classes } = useStyles();
   let navigate = useNavigate();
+  const isFirstRender = useRef(true);
+  const [user, setUser] = useState();
+  const [userName, setUserName] = useState('Jaydon Frankie');
+  const [userType, setUserType] = useState('Admin');
+
+  useEffect(() => {
+    setUser(JSON.parse(localStorage.getItem('user')));
+
+    // if (user == undefined) {
+    //   navigate('/');
+    // }
+  }, []);
+
+  useEffect(() => {
+    if (isFirstRender.current) {
+      isFirstRender.current = false;
+      return;
+    }
+
+    setUserName(user.userEmail);
+    setUserType(user.userType);
+  }, [user]);
 
   const renderContent = (
     <>
@@ -102,11 +119,11 @@ export const AdminDashboards = () => {
         <StyledAccount>
           <Box>
             <Typography variant="subtitle2" sx={{ color: '#FFFFFF', fontWeight: '600' }}>
-              {account.displayName}
+              {userName}
             </Typography>
 
             <Typography variant="caption" sx={{ color: '#cd6afd', fontWeight: '600' }}>
-              {account.role}
+              {userType}
             </Typography>
           </Box>
         </StyledAccount>
@@ -129,7 +146,8 @@ export const AdminDashboards = () => {
   );
 
   const onLogout = () => {
-    console.log('test');
+    localStorage.clear();
+    console.log('Logging out.');
     navigate('/');
   };
 

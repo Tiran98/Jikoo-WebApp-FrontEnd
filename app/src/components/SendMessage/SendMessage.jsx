@@ -1,14 +1,17 @@
+import React, { useState, useEffect, useRef } from 'react';
 import * as dayjs from 'dayjs';
 import * as yup from 'yup';
-
+import Alert from '@mui/material/Alert';
+import Collapse from '@mui/material/Collapse';
 import { Box, Button, Container, Drawer, Grid, Stack, TextField, Typography } from '@mui/material/';
 import { alpha, styled } from '@mui/material/styles';
+import CloseIcon from '@mui/icons-material/Close';
+import IconButton from '@mui/material/IconButton';
 
 import DashboardIcon from '@mui/icons-material/Dashboard';
 import FileUploadIcon from '@mui/icons-material/FileUpload';
 import MailIcon from '@mui/icons-material/Mail';
 import NavSection from '../nav-section';
-import React from 'react';
 import axios from 'axios';
 import logo from '../../assets/LogoConceptCROP.png';
 import { useForm } from 'react-hook-form';
@@ -41,11 +44,6 @@ const navConfig = [
     path: '/file-upload'
   }
 ];
-
-const account = {
-  displayName: 'Jaydon Frankie',
-  role: 'Manager'
-};
 
 const StyledRoot = styled('div')({
   display: 'flex',
@@ -117,30 +115,69 @@ export const SendMessage = () => {
   const {
     register,
     handleSubmit,
-    formState: { errors },
-    reset
+    reset,
+    formState: { errors }
   } = useForm({
     resolver: yupResolver(validationSchema)
   });
+  const isFirstRender = useRef(true);
+  const [user, setUser] = useState();
+  const [userName, setUserName] = useState('Jaydon Frankie');
+  const [userType, setUserType] = useState('Manager');
+  const [userID, setUserID] = useState('');
+  const [token, setToken] = useState('');
+  const [success, setSuccess] = useState(false);
+  const [alertOpen, setAlertOpen] = useState(false);
+
+  useEffect(() => {
+    setUser(JSON.parse(localStorage.getItem('user')));
+  }, []);
+
+  useEffect(() => {
+    if (isFirstRender.current) {
+      isFirstRender.current = false;
+      return;
+    }
+
+    setUserName(user.userEmail);
+    setUserType(user.userType);
+    setUserID(user.userId);
+    setToken(user.token);
+  }, [user]);
+
+  console.log(success);
 
   const onSubmitHandler = (data) => {
     console.log({ data });
 
+    const requestOptions = {
+      headers: {
+        Authorization: `Bearer ${token}`
+      }
+    };
+
     axios
-      .post('https://localhost:3000/api/v1/message/sendMessage', {
-        sendBy: 'token',
-        msgContent: data.message,
-        sendDate: now
-      })
+      .post(
+        'https://jikoo-webapp-backend.herokuapp.com/api/v1/message/sendMessage',
+        {
+          sendBy: userID,
+          msgContent: data.message,
+          sendDate: now
+        },
+        requestOptions
+      )
       .then((response) => {
         console.log('response: ' + response);
+        setSuccess(true);
         reset();
-        navigate('/dashboard');
       })
-      .catch((err) => {
-        console.log(err);
-      });
+      .catch(() => {});
   };
+
+  useEffect(() => {
+    setAlertOpen(success);
+  }, [success]);
+
   const renderContent = (
     <>
       <Box sx={{ px: 2.5, py: 3, display: 'inline-flex' }}>
@@ -151,11 +188,11 @@ export const SendMessage = () => {
         <StyledAccount>
           <Box>
             <Typography variant="subtitle2" sx={{ color: '#FFFFFF', fontWeight: '600' }}>
-              {account.displayName}
+              {userName}
             </Typography>
 
             <Typography variant="caption" sx={{ color: '#cd6afd', fontWeight: '600' }}>
-              {account.role}
+              {userType}
             </Typography>
           </Box>
         </StyledAccount>
@@ -178,7 +215,8 @@ export const SendMessage = () => {
   );
 
   const onLogout = () => {
-    console.log('test');
+    localStorage.clear();
+    console.log('Logging out.');
     navigate('/');
   };
 
@@ -220,6 +258,23 @@ export const SendMessage = () => {
               Logout
             </Button>
           </Stack>
+          <Collapse in={alertOpen}>
+            <Alert
+              action={
+                <IconButton
+                  aria-label="close"
+                  color="inherit"
+                  size="small"
+                  onClick={() => {
+                    setAlertOpen(false);
+                  }}>
+                  <CloseIcon fontSize="inherit" />
+                </IconButton>
+              }
+              sx={{ mb: 3, width: '35%' }}>
+              Messaeg Sent Successfully!
+            </Alert>
+          </Collapse>
           <Grid container spacing={3}>
             <Grid
               item

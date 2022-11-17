@@ -1,8 +1,6 @@
 import * as yup from 'yup';
-
+import React, { useState, useEffect, useRef } from 'react';
 import { Button, Grid, Paper, TextField, Typography } from '@mui/material/';
-import React, { useState } from 'react';
-
 import IconButton from '@mui/material/IconButton';
 import InputAdornment from '@mui/material/InputAdornment';
 import Visibility from '@mui/icons-material/Visibility';
@@ -60,33 +58,68 @@ const CssTextField = withStyles(TextField, () => ({
 export const UserLogin = () => {
   const { classes } = useStyles();
   let navigate = useNavigate();
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const isFirstRender = useRef(true);
+  const [success, setSuccess] = useState(false);
+  const [errMsg, setErrMsg] = useState('');
+  const [userProfile, setUserProfile] = useState([]);
   const [showPassword, setShowPassword] = useState(false);
   const {
     register,
     handleSubmit,
-    formState: { errors },
-    reset
+    formState: { errors }
   } = useForm({
     resolver: yupResolver(validationSchema)
   });
 
-  const onSubmitHandler = (data) => {
-    console.log({ data });
+  useEffect(() => {
+    if (isFirstRender.current) {
+      isFirstRender.current = false; // toggle flag after first render/mounting
+      return;
+    }
 
+    localStorage.setItem('user', JSON.stringify(userProfile));
+  }, [userProfile]);
+
+  useEffect(() => {
+    if (isFirstRender.current) {
+      isFirstRender.current = false; // toggle flag after first render/mounting
+      return;
+    }
+
+    if (success) {
+      if (userProfile.userType == 'Admin') {
+        navigate('/admin');
+      } else {
+        navigate('/dashboard');
+      }
+    }
+  }, [success]);
+
+  const onSubmitHandler = (data) => {
     axios
-      .post('https://localhost:3000/api/v1/user/signin', {
+      .post('https://jikoo-webapp-backend.herokuapp.com/api/v1/user/signin', {
         userEmail: data.email,
         password: data.password
       })
       .then((response) => {
-        console.log('response: ' + response);
-        reset();
-        navigate('/dashboard');
+        if (response.data.status === parseInt('401')) {
+          console.log('response: Wrong user name or password.');
+          setErrMsg('Incorrect email or password.');
+        } else {
+          setSuccess(true);
+          setUserProfile(response.data);
+        }
+        // console.log('response: ' + response.data.user.token);
+        // navigate('/dashboard');
       })
       .catch((err) => {
-        console.log(err);
+        if (!err?.response) {
+          setErrMsg('No Server Response');
+        } else if (err.response?.status === 400) {
+          setErrMsg('Wrong user name or password.');
+        } else {
+          setErrMsg('Login Failed');
+        }
       });
   };
 
@@ -115,8 +148,8 @@ export const UserLogin = () => {
                   id="email"
                   name="email"
                   label="Email"
-                  value={email}
-                  onInput={(e) => setEmail(e.target.value)}
+                  // value={email}
+                  // onInput={(e) => setEmail(e.target.value)}
                   variant="outlined"
                   margin="normal"
                   helperText={errors.email?.message}
@@ -129,8 +162,8 @@ export const UserLogin = () => {
                   id="password"
                   name="password"
                   label="Password"
-                  value={password}
-                  onInput={(e) => setPassword(e.target.value)}
+                  // value={password}
+                  // onInput={(e) => setPassword(e.target.value)}
                   variant="outlined"
                   margin="normal"
                   helperText={errors.password?.message}
@@ -150,7 +183,11 @@ export const UserLogin = () => {
                   }}
                 />
               </Grid>
-              {/* <Typography variant="caption">{errorMsg}</Typography> */}
+              <Typography
+                variant="caption"
+                sx={{ color: '#ff6161', marginTop: '10px', marginLeft: '20px' }}>
+                {errMsg}
+              </Typography>
             </Grid>
             <Button type="submit" fullWidth variant="contained" className={classes.btn}>
               Submit
