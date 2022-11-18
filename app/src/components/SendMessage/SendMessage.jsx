@@ -283,7 +283,7 @@ export const SendMessage = () => {
                 </IconButton>
               }
               sx={{ mb: 3, width: '35%' }}>
-              Messaeg Sent Successfully!
+              Message Sent Successfully!
             </Alert>
           </Collapse>
           <Grid container spacing={3}>

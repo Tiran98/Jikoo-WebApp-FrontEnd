@@ -2,6 +2,10 @@ import * as dayjs from 'dayjs';
 import React, { useState, useEffect, useRef } from 'react';
 import { Box, Button, Container, Drawer, Grid, Stack, TextField, Typography } from '@mui/material/';
 import { alpha, styled } from '@mui/material/styles';
+import Collapse from '@mui/material/Collapse';
+import CloseIcon from '@mui/icons-material/Close';
+import IconButton from '@mui/material/IconButton';
+import Alert from '@mui/material/Alert';
 
 import DashboardIcon from '@mui/icons-material/Dashboard';
 import FileUploadIcon from '@mui/icons-material/FileUpload';
@@ -121,6 +125,8 @@ export const UploadFile = () => {
   const [userType, setUserType] = useState('');
   const [userID, setUserID] = useState('');
   const [token, setToken] = useState('');
+  const [success, setSuccess] = useState(false);
+  const [alertOpen, setAlertOpen] = useState(false);
   // const [success, setSuccess] = useState(false);
   // const [alertOpen, setAlertOpen] = useState(false);
   const { getRootProps, acceptedFiles, getInputProps, isDragActive, isDragAccept, isDragReject } =
@@ -153,22 +159,31 @@ export const UploadFile = () => {
 
   const onSubmitHandler = () => {
     console.log(acceptedFiles);
+    var bodyFormData = new FormData();
+    bodyFormData.append('uploadedBy', userID);
+    bodyFormData.append('fileName', acceptedFiles[0].name);
+    bodyFormData.append('file', acceptedFiles);
+    bodyFormData.append('uploadDate', now);
 
-    axios
-      .post('https://localhost:3000/api/v1/file/addFile', {
-        uploadedBy: 'token',
-        fileName: 'file name',
-        file: acceptedFiles,
-        uploadDate: now
-      })
+    axios({
+      method: 'post',
+      url: 'https://jikoo-webapp-backend.herokuapp.com/api/v1/file/addFile',
+      data: bodyFormData,
+      headers: { Authorization: `Bearer ${token}` }
+    })
       .then((response) => {
         console.log('response: ' + response);
+        setSuccess(true);
         navigate('/file-upload');
       })
       .catch((err) => {
         console.log(err);
       });
   };
+
+  useEffect(() => {
+    setAlertOpen(success);
+  }, [success]);
 
   const renderContent = (
     <>
@@ -250,6 +265,23 @@ export const UploadFile = () => {
               Logout
             </Button>
           </Stack>
+          <Collapse in={alertOpen}>
+            <Alert
+              action={
+                <IconButton
+                  aria-label="close"
+                  color="inherit"
+                  size="small"
+                  onClick={() => {
+                    setAlertOpen(false);
+                  }}>
+                  <CloseIcon fontSize="inherit" />
+                </IconButton>
+              }
+              sx={{ mb: 3, width: '35%' }}>
+              File Uploaded Successfully!
+            </Alert>
+          </Collapse>
           <form onSubmit={handleSubmit(onSubmitHandler)}>
             <Grid container spacing={3}>
               <Grid
