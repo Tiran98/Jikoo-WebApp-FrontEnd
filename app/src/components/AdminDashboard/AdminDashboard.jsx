@@ -52,35 +52,23 @@ const StyledAccount = styled('div')(({ theme }) => ({
 }));
 
 const columns = [
-  { field: 'id', headerName: 'ID', width: 70 },
-  { field: 'firstName', headerName: 'First name', width: 130 },
-  { field: 'lastName', headerName: 'Last name', width: 130 },
+  { field: '_id', renderHeader: () => <strong>{'ID'}</strong>, width: 200 },
   {
-    field: 'age',
-    headerName: 'Age',
-    type: 'number',
-    width: 90
+    field: 'userName',
+    renderHeader: () => <strong>{'Full Name'}</strong>,
+    width: 200
+  },
+  { field: 'userEmail', renderHeader: () => <strong>{'Email'}</strong>, width: 250 },
+  {
+    field: 'userPhone',
+    renderHeader: () => <strong>{'Phone'}</strong>,
+    width: 150
   },
   {
-    field: 'fullName',
-    headerName: 'Full name',
-    description: 'This column has a value getter and is not sortable.',
-    sortable: false,
-    width: 160,
-    valueGetter: (params) => `${params.row.firstName || ''} ${params.row.lastName || ''}`
+    field: 'userType',
+    renderHeader: () => <strong>{'User Type'}</strong>,
+    width: 150
   }
-];
-
-const rows = [
-  { id: 1, lastName: 'Snow', firstName: 'Jon', age: 35 },
-  { id: 2, lastName: 'Lannister', firstName: 'Cersei', age: 42 },
-  { id: 3, lastName: 'Lannister', firstName: 'Jaime', age: 45 },
-  { id: 4, lastName: 'Stark', firstName: 'Arya', age: 16 },
-  { id: 5, lastName: 'Targaryen', firstName: 'Daenerys', age: null },
-  { id: 6, lastName: 'Melisandre', firstName: null, age: 150 },
-  { id: 7, lastName: 'Clifford', firstName: 'Ferrara', age: 44 },
-  { id: 8, lastName: 'Frances', firstName: 'Rossini', age: 36 },
-  { id: 9, lastName: 'Roxie', firstName: 'Harvey', age: 65 }
 ];
 
 export const AdminDashboards = () => {
@@ -88,15 +76,13 @@ export const AdminDashboards = () => {
   let navigate = useNavigate();
   const isFirstRender = useRef(true);
   const [user, setUser] = useState();
-  const [userName, setUserName] = useState('Jaydon Frankie');
-  const [userType, setUserType] = useState('Admin');
+  const [userName, setUserName] = useState('');
+  const [userType, setUserType] = useState('');
+  const [users, setUsers] = useState([]);
+  const [rows, setRows] = useState([]);
 
   useEffect(() => {
     setUser(JSON.parse(localStorage.getItem('user')));
-
-    // if (user == undefined) {
-    //   navigate('/');
-    // }
   }, []);
 
   useEffect(() => {
@@ -108,6 +94,39 @@ export const AdminDashboards = () => {
     setUserName(user.userEmail);
     setUserType(user.userType);
   }, [user]);
+
+  useEffect(() => {
+    if (isFirstRender.current) {
+      isFirstRender.current = false;
+      return;
+    }
+
+    // const requestOptions = {
+    //   headers: {
+    //     Authorization: `Bearer ${token}`
+    //   }
+    // };
+
+    fetch('https://jikoo-webapp-backend.herokuapp.com/api/v1/user/allUsers')
+      .then((res) => {
+        if (res.ok) {
+          return res.json();
+        }
+      })
+      .then((jsonRes) => setUsers(jsonRes));
+  }, []);
+
+  useEffect(() => {
+    if (isFirstRender.current) {
+      isFirstRender.current = false;
+      return;
+    }
+
+    if (users != undefined) {
+      console.log(users);
+      setRows(users);
+    }
+  }, [users]);
 
   const renderContent = (
     <>
@@ -210,6 +229,7 @@ export const AdminDashboards = () => {
               <DataGrid
                 autoHeight="true"
                 rows={rows}
+                getRowId={(row) => row._id}
                 columns={columns}
                 pageSize={10}
                 rowsPerPageOptions={[10]}

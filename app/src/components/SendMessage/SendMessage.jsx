@@ -159,8 +159,6 @@ export const SendMessage = () => {
   }, [user]);
 
   const onSubmitHandler = (data) => {
-    console.log({ data });
-
     const requestOptions = {
       headers: {
         Authorization: `Bearer ${token}`
@@ -182,7 +180,9 @@ export const SendMessage = () => {
         setSuccess(true);
         reset();
       })
-      .catch(() => {});
+      .catch((err) => {
+        console.log(err);
+      });
   };
 
   useEffect(() => {

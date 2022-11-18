@@ -299,25 +299,29 @@ export const UserDashboard = () => {
                 rowsPerPageOptions={[10]}
               />
             </Grid>
-            <Grid
-              item
-              xs={5}
-              sx={{
-                bgcolor: '#FFFFFF',
-                padding: '20px',
-                mt: 3,
-                borderRadius: '5px',
-                boxShadow: '1px 1px 5px #a8a8a8'
-              }}>
-              <DataGrid
-                autoHeight="true"
-                rows={fileRows}
-                getRowId={(row) => row._id}
-                columns={columnsFiles}
-                pageSize={10}
-                rowsPerPageOptions={[10]}
-              />
-            </Grid>
+            {userType == 'Manager' ? (
+              <Grid
+                item
+                xs={5}
+                sx={{
+                  bgcolor: '#FFFFFF',
+                  padding: '20px',
+                  mt: 3,
+                  borderRadius: '5px',
+                  boxShadow: '1px 1px 5px #a8a8a8'
+                }}>
+                <DataGrid
+                  autoHeight="true"
+                  rows={fileRows}
+                  getRowId={(row) => row._id}
+                  columns={columnsFiles}
+                  pageSize={10}
+                  rowsPerPageOptions={[10]}
+                />
+              </Grid>
+            ) : (
+              <></>
+            )}
           </Grid>
         </Container>
       </Main>
