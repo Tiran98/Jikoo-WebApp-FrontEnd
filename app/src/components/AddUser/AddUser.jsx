@@ -1,10 +1,13 @@
 import * as yup from 'yup';
-
+import React, { useState, useEffect, useRef } from 'react';
+import Alert from '@mui/material/Alert';
+import * as dayjs from 'dayjs';
+import Collapse from '@mui/material/Collapse';
 import { Box, Button, Container, Drawer, Grid, Stack, TextField, Typography } from '@mui/material/';
-import React, { useState } from 'react';
 import { alpha, styled } from '@mui/material/styles';
 
 import DashboardIcon from '@mui/icons-material/Dashboard';
+import CloseIcon from '@mui/icons-material/Close';
 import FormControl from '@mui/material/FormControl';
 import GroupAddIcon from '@mui/icons-material/GroupAdd';
 import IconButton from '@mui/material/IconButton';
@@ -48,11 +51,6 @@ const navConfig = [
     path: '/add-user'
   }
 ];
-
-const account = {
-  displayName: 'Jaydon Frankie',
-  role: 'Admin'
-};
 
 const StyledRoot = styled('div')({
   display: 'flex',
@@ -143,6 +141,31 @@ export const AddUser = () => {
   } = useForm({
     resolver: yupResolver(validationSchema)
   });
+  const isFirstRender = useRef(true);
+  const [user, setUser] = useState();
+  const [userName, setUserName] = useState('');
+  const [userType, setUserType] = useState('');
+  // const [userID, setUserID] = useState('');
+  const [token, setToken] = useState('');
+  const [success, setSuccess] = useState(false);
+  const [alertOpen, setAlertOpen] = useState(false);
+  var now = dayjs().format('MMMM D, YYYY h:mm A');
+
+  useEffect(() => {
+    setUser(JSON.parse(localStorage.getItem('user')));
+  }, []);
+
+  useEffect(() => {
+    if (isFirstRender.current) {
+      isFirstRender.current = false;
+      return;
+    }
+
+    setUserName(user.userEmail);
+    setUserType(user.userType);
+    // setUserID(user.userId);
+    setToken(user.token);
+  }, [user]);
 
   const handleChange = (event) => {
     setRole(event.target.value);
@@ -157,28 +180,41 @@ export const AddUser = () => {
   };
 
   const onSubmitHandler = (data) => {
-    console.log({ data });
+    const requestOptions = {
+      headers: {
+        Authorization: `Bearer ${token}`
+      }
+    };
 
     axios
-      .post('https://localhost:3000/api/v1/user/signup', {
-        userName: data.fullname,
-        userEmail: data.email,
-        userBirthday: '1990-09-27',
-        userGender: 'Male',
-        password: data.password,
-        userPhone: data.mobile,
-        userAddress: 'Sri Lanka',
-        userType: role,
-        createdDate: '2020-07-25'
-      })
+      .post(
+        'https://jikoo-webapp-backend.herokuapp.com/api/v1/user/signup',
+        {
+          userName: data.fullname,
+          userEmail: data.email,
+          userBirthday: '1990-09-27',
+          userGender: 'Male',
+          password: data.password,
+          userPhone: data.mobile,
+          userAddress: 'Sri Lanka',
+          userType: role,
+          createdDate: now
+        },
+        requestOptions
+      )
       .then((response) => {
         console.log('response: ' + response);
+        setSuccess(true);
         reset();
       })
       .catch((err) => {
         console.log(err);
       });
   };
+
+  useEffect(() => {
+    setAlertOpen(success);
+  }, [success]);
 
   const renderContent = (
     <>
@@ -190,11 +226,11 @@ export const AddUser = () => {
         <StyledAccount>
           <Box>
             <Typography variant="subtitle2" sx={{ color: '#FFFFFF', fontWeight: '600' }}>
-              {account.displayName}
+              {userName}
             </Typography>
 
             <Typography variant="caption" sx={{ color: '#cd6afd', fontWeight: '600' }}>
-              {account.role}
+              {userType}
             </Typography>
           </Box>
         </StyledAccount>
@@ -217,7 +253,8 @@ export const AddUser = () => {
   );
 
   const onLogout = () => {
-    console.log('test');
+    localStorage.clear();
+    console.log('Logging out.');
     navigate('/');
   };
 
@@ -259,6 +296,23 @@ export const AddUser = () => {
               Logout
             </Button>
           </Stack>
+          <Collapse in={alertOpen}>
+            <Alert
+              action={
+                <IconButton
+                  aria-label="close"
+                  color="inherit"
+                  size="small"
+                  onClick={() => {
+                    setAlertOpen(false);
+                  }}>
+                  <CloseIcon fontSize="inherit" />
+                </IconButton>
+              }
+              sx={{ mb: 3, width: '35%' }}>
+              User Added Successfully!
+            </Alert>
+          </Collapse>
           <form onSubmit={handleSubmit(onSubmitHandler)}>
             <Grid
               container
@@ -361,8 +415,8 @@ export const AddUser = () => {
                     value={role}
                     label="Select Role"
                     onChange={handleChange}>
-                    <MenuItem value={'manager'}>Manager</MenuItem>
-                    <MenuItem value={'employee'}>Employee</MenuItem>
+                    <MenuItem value={'Manager'}>Manager</MenuItem>
+                    <MenuItem value={'Employee'}>Employee</MenuItem>
                   </CssSelect>
                 </FormControl>
               </Grid>
